@@ -1,0 +1,18 @@
+{"joke_id":"joke_001",
+"trigger_phrases":["Lawrence","劳伦斯"],
+"context_pattern":"Comments joking about someone having a cursh on Lawrence or any english teacher.",
+"meaning":"Mr. Lawrence is a beloved English/ESOL teacher at our highschool, and students often joke about having a crush on him. This joke plays on that common theme.",
+"recommended_usage":"You could mention Robert, a hypothetical student, who alledgely has a crush on Mr. Lawrence.",
+"preferred_style":"humorous",
+"example_good_reply":["You are getting a C for ESOL."],
+"status":"active"}
+
+{"joke_id":"joke_002",
+"trigger_phrases":["牢大","科比","Kobe Bryant", "helicopter crash", "helicopter"],
+"context_pattern":"Comments or posts about helicopter crashes.",
+"meaning":"Kobe Bryant, the legendary basketball player, died in a helicopter crash. People often make jokes about helicopter crashes in reference to this event to educate the public about aviation safety.",
+"recommended_usage":"You could mention things related to helicopters or respawning.",
+"preferred_style":"humorous",
+"example_good_reply":["Did he win the respawn match?", "你也打赢复活赛了？", "Helicopters are not safe bro."],
+"status":"active"}
+

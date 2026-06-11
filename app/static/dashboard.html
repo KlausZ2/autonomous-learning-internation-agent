@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instagram Comment Agent</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f6f7f9;
+        color: #17202a;
+      }
+      body {
+        margin: 0;
+      }
+      header {
+        background: #ffffff;
+        border-bottom: 1px solid #d8dee8;
+        padding: 18px 28px;
+      }
+      main {
+        display: grid;
+        grid-template-columns: minmax(320px, 420px) 1fr;
+        gap: 24px;
+        padding: 24px 28px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      h2 {
+        margin: 0 0 14px;
+        font-size: 17px;
+      }
+      section {
+        background: #ffffff;
+        border: 1px solid #d8dee8;
+        border-radius: 8px;
+        padding: 18px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 650;
+        margin-bottom: 7px;
+      }
+      input,
+      textarea {
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid #c4ccd8;
+        border-radius: 6px;
+        font: inherit;
+        padding: 10px 11px;
+      }
+      textarea {
+        min-height: 150px;
+        resize: vertical;
+      }
+      button {
+        border: 0;
+        border-radius: 6px;
+        background: #1769e0;
+        color: #ffffff;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        padding: 10px 14px;
+      }
+      button:disabled {
+        cursor: wait;
+        opacity: 0.6;
+      }
+      .field {
+        margin-bottom: 14px;
+      }
+      .result {
+        background: #f8fafc;
+        border: 1px solid #d8dee8;
+        border-radius: 6px;
+        margin-top: 16px;
+        min-height: 80px;
+        overflow: auto;
+        padding: 12px;
+        white-space: pre-wrap;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border-bottom: 1px solid #e6eaf0;
+        font-size: 13px;
+        padding: 9px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f8fafc;
+        font-weight: 750;
+      }
+      .pill {
+        border-radius: 999px;
+        display: inline-block;
+        font-weight: 750;
+        padding: 2px 8px;
+      }
+      .reply_public {
+        background: #dceeff;
+        color: #064b88;
+      }
+      .ignore {
+        background: #eceff3;
+        color: #394150;
+      }
+      .hide {
+        background: #fff2ca;
+        color: #6f4c00;
+      }
+      .delete {
+        background: #ffe0e0;
+        color: #8c1515;
+      }
+      @media (max-width: 860px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Instagram Comment Agent</h1>
+    </header>
+    <main>
+      <section>
+        <h2>Test Comment</h2>
+        <form id="comment-form">
+          <div class="field">
+            <label for="comment-id">Comment ID</label>
+            <input id="comment-id" value="local-test-comment" />
+          </div>
+          <div class="field">
+            <label for="username">Username</label>
+            <input id="username" value="tester" />
+          </div>
+          <div class="field">
+            <label for="comment-text">Comment Text</label>
+            <textarea id="comment-text">What is the price?</textarea>
+          </div>
+          <button id="submit" type="submit">Decide</button>
+        </form>
+        <pre class="result" id="result"></pre>
+      </section>
+      <section>
+        <h2>Audit Log</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>User</th>
+              <th>Comment</th>
+              <th>Category</th>
+              <th>Action</th>
+              <th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody id="audit-body"></tbody>
+        </table>
+      </section>
+    </main>
+    <script>
+      const result = document.querySelector("#result");
+      const submit = document.querySelector("#submit");
+      const auditBody = document.querySelector("#audit-body");
+
+      async function refreshAudit() {
+        const response = await fetch("/audit");
+        const rows = await response.json();
+        auditBody.innerHTML = rows
+          .map(
+            (row) => `
+              <tr>
+                <td>${new Date(row.created_at).toLocaleString()}</td>
+                <td>${row.username || ""}</td>
+                <td>${row.text}</td>
+                <td>${row.category}</td>
+                <td><span class="pill ${row.action}">${row.action}</span></td>
+                <td>${Number(row.confidence).toFixed(2)}</td>
+              </tr>
+            `,
+          )
+          .join("");
+      }
+
+      document.querySelector("#comment-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        submit.disabled = true;
+        const payload = {
+          auto_apply: false,
+          comment: {
+            id: document.querySelector("#comment-id").value,
+            username: document.querySelector("#username").value,
+            text: document.querySelector("#comment-text").value,
+          },
+        };
+        try {
+          const response = await fetch("/agent/decide", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+          result.textContent = JSON.stringify(data, null, 2);
+          await refreshAudit();
+        } finally {
+          submit.disabled = false;
+        }
+      });
+
+      refreshAudit();
+    </script>
+  </body>
+</html>
+
